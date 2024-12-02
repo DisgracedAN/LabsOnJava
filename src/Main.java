@@ -230,6 +230,9 @@ class PlayableCharacter {
             this.addToInventory(sorcerersRobe);
         }
     }
+    public int getActiveSlots() {
+        return InventoryUtilits.getActiveSlots(inventory);
+    }
 
 
 }
@@ -429,9 +432,15 @@ class PlayableCharacterManager {
 
 }
 
+//вспомогательный класс
+class InventoryUtilits{
+    public static int getActiveSlots(Inventory inventory){
+        return inventory.ActiveSlots;
+    }
+}
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+
+
 public class Main {
     public static void main(String[] args) {
         // Настройка локали для русского языка
@@ -501,6 +510,10 @@ public class Main {
         PlayableCharacter character = saves.getCharacter(choice);
         character.PrintStats();
         character.ShowInventory();
+
+        //вспомогательный класс:
+        int ActiveSlot=hero.getActiveSlots();
+        System.out.println("Количество предметов в инвенторе игрока "+hero.Type.name+" составляет "+ActiveSlot);
 
 
 
