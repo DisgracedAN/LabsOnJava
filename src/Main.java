@@ -377,12 +377,11 @@ class Entity {
 
 class PlayableCharacterManager {
 
-    private List<PlayableCharacter> characters;
-    private int capacity;
+    private static List<PlayableCharacter> characters=new ArrayList<>();
+    private static int capacity;
 
-    public PlayableCharacterManager() {
-        this.characters = new ArrayList<>();
-        this.capacity = 10; // Начальная емкость
+    public PlayableCharacterManager(int  capacity) {
+        PlayableCharacterManager.capacity = 10; // Начальная емкость
     }
 
 
@@ -408,15 +407,26 @@ class PlayableCharacterManager {
         return null;
     }
 
-    public int getSize() {
+    public static void printSize() {
+        System.out.println("Количество персонажей: "+ characters.size());
+
+    }
+    public int getSize(){
         return characters.size();
     }
 
+    public static void printCapacity(){
+        System.out.println("Общее число сохранений: "+capacity);
+    }
+
+    public int getCapacity(){
+        return capacity;
+    }
 
     public void update(PlayableCharacter hero) {
         for (int i = 0; i < this.getSize(); ++i) {
-            if (this.characters.get(i).Type.name.equals(hero.Type.name)) {
-                this.characters.set(i, hero);
+            if (characters.get(i).Type.name.equals(hero.Type.name)) {
+                characters.set(i, hero);
                 return;
             }
         }
@@ -447,7 +457,7 @@ public class Main {
         Locale.setDefault(new Locale("ru", "RU"));
         System.out.print("Программа запущена\n");
 
-        PlayableCharacterManager saves = new PlayableCharacterManager();
+        PlayableCharacterManager saves = new PlayableCharacterManager(10);
 
 
 
@@ -496,7 +506,9 @@ public class Main {
             System.out.println(saves.getCharacter(i).getType().getName());
         }
         System.out.println("Введите номер персонажа для вывода статистики:");
-        System.out.println("Всего персонажей: " + saves.getSize());
+        PlayableCharacterManager.printSize();
+        PlayableCharacterManager.printCapacity();
+
         Scanner scanner = new Scanner(System.in);
         int choice;
         do {
