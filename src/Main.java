@@ -157,7 +157,13 @@ class PlayableCharacter {
     };
 
     public void addToInventory(Item item){
-        inventory.AddItem(item);
+        try {
+            inventory.AddItem(item);
+            System.out.println("Элемент " + item.getName() + " добавлен в инвентарь.");
+        } catch (InventoryFullException e) {
+            System.err.println(e.getMessage());
+        }
+
     }
 
     public CharacterClass getType(){return Type;}
@@ -237,6 +243,12 @@ class PlayableCharacter {
 
 }
 
+class InventoryFullException extends Exception {
+    public InventoryFullException(String message) {
+        super(message);
+    }
+}
+
 class Inventory {
     Item[] items=new Item[100];//Массив предметов
     int ActiveSlots;//Свободные слоты
@@ -245,12 +257,15 @@ class Inventory {
         this.items=new Item[100];
         this.ActiveSlots=0;
     };
-    public void AddItem(Item item){
+    public void AddItem(Item item)throws InventoryFullException{
+        if (ActiveSlots >= items.length) {
+            throw new InventoryFullException("Инвентарь полон, не удается добавить элемент: " + item);
+        }
         if (ActiveSlots < 100) {
             items[ActiveSlots] = item;
             ActiveSlots++;
         }
-        else { System.out.println("Инвентарь полон!");}
+
     }
 }
 
@@ -281,6 +296,14 @@ class Item {
     public String getName() { return Name; }
     public String getDescription() { return Description;}
     public int getDropChance(){return DropChance;}
+
+
+    public void printItem(){
+
+        System.out.println(" Тип: " + this.getItemType().getName());
+        System.out.println(" Название: " + this.getName());
+        System.out.println(" Описание: " + this.getDescription());
+    }
 }
 
 //NPC
@@ -451,7 +474,9 @@ class InventoryUtilits{
 
 
 
+
 public class Main {
+
     public static void main(String[] args) {
         // Настройка локали для русского языка
         Locale.setDefault(new Locale("ru", "RU"));
@@ -529,5 +554,33 @@ public class Main {
 
 
 
+
+        Item itemMas[][];
+        itemMas=new Item [2][2];
+        Item Sword=new Item();
+        Sword.setItem(ItemType.Weapon,"Меч","Обычный стальной меч",20);
+
+        Item Bow=new Item();
+        Bow.setItem(ItemType.Weapon, "Лук", "Композитный лук", 15);
+        Item Knife=new Item();
+        Knife.setItem(ItemType.Weapon, "Нож", "Обычный крестьянский нож, есть в каждой образцовой семье", 20);
+        Item HexersStaff=new Item();
+        HexersStaff.setItem(ItemType.Weapon, "Посох Мага Порчи", "Такие жуткие, гротескные посохи носили маги школы порчи.", 20);
+
+        itemMas[0][0] = Sword;
+        itemMas[0][1] = Bow;
+        itemMas[1][0] = Knife;
+        itemMas[1][1] = HexersStaff;
+
+        for (int i = 0;i < 2;i++) {
+            for (int j = 0;j < 2;j++) {
+                itemMas[i][j].printItem();
+            }
+        }
+
+
+
     }
+
+
 }
