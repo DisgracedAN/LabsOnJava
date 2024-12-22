@@ -35,6 +35,26 @@ enum ItemType{
 }
 
 
+abstract class InteractableObjects{
+    private String Name;
+    public String getName() {
+        return Name;
+    }
+
+    // Абстрактный метод для взаимодействия с объектом
+    public abstract void interact();
+
+}
+
+interface Playable{
+    void attack();
+    void defend();
+    void move(int x, int y);
+    void useItem(Item item);
+
+}
+
+
 //Тип встречающихся NPC
 enum EntityType {
     Monster("Монстр"),
@@ -147,7 +167,7 @@ class CharacterClass {
 
 }
 
-class PlayableCharacter {
+class PlayableCharacter implements Playable{
     CharacterClass Type;
     Inventory inventory;
 
@@ -165,6 +185,31 @@ class PlayableCharacter {
         }
 
     }
+    @Override
+    public void attack() {
+        System.out.println(Type.name + " Атакует!");
+    }
+
+    @Override
+    public void defend() {
+        System.out.println(Type.name + " Защищается!");
+    }
+
+    @Override
+    public void move(int x, int y) {
+        System.out.println(Type.name + " Передвигается по координгатам (" + x + ", " + y + ").");
+    }
+
+    @Override
+    public void useItem(Item item) {
+        for (int i=0;i<inventory.ActiveSlots;i++){
+            if(item.Name==inventory.items[i].Name) {
+                System.out.println("Персонаж использовал предмет: " + item.Name);
+            }
+        }
+    }
+
+
 
     public CharacterClass getType(){return Type;}
 
@@ -249,7 +294,7 @@ class InventoryFullException extends Exception {
     }
 }
 
-class Inventory {
+class Inventory<T extends Item> {
     Item[] items=new Item[100];//Массив предметов
     int ActiveSlots;//Свободные слоты
 
@@ -271,18 +316,33 @@ class Inventory {
 
 
 //Предмет
-class Item {
-    ItemType itemType;//Тип предмета
-    String Name;//Название
-    String Description;//Краткое описание
-    int DropChance;//Шанс выпадения с NPC
+class Item extends InteractableObjects implements Cloneable{
 
+    protected ItemType itemType;//Тип предмета
+    protected String Name;//Название
+    protected String Description;//Краткое описание
+    protected int DropChance;//Шанс выпадения с NPC
+
+    public Item(ItemType itemtype, String name, String desc, int dropchance){
+        this.itemType=itemtype;
+        this.Name=name;
+        this.Description=desc;
+        this.DropChance=dropchance;
+
+    }
     public Item(){
         this.itemType=ItemType.Key;
         this.Name="";
         this.Description="";
         this.DropChance=0;
+    }
+    public String getInfo(){
+        return "Тип предмета: "+ itemType+"\nНазвание предмета: "+Name+"\nОписание: "+Description+"\nШанс выпадения: "+DropChance;
+    }
 
+    @Override
+    public String toString(){
+        return "Тип предмета: "+ itemType+"\nНазвание предмета: "+Name+"\nОписание: "+Description+"\nШанс выпадения: "+DropChance;
     }
 
 
@@ -304,7 +364,105 @@ class Item {
         System.out.println(" Название: " + this.getName());
         System.out.println(" Описание: " + this.getDescription());
     }
+
+    @Override
+    public void interact() {
+        System.out.println("Вы использовали предмет: "+ getName());
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+
 }
+
+class WeaponItem extends Item{
+    double damage;
+    public WeaponItem(ItemType type,String name, String desc,int dropchance, double dmg){
+        super(type, name,desc,dropchance);
+        this.damage=dmg;
+    }
+    @Override
+    public String getInfo(){
+        return super.getInfo()+"\nУрон: "+damage;
+
+    }
+    @Override
+    public String toString(){
+        return super.toString()+"\nУрон: "+damage;
+    }
+    public WeaponItem deepClone(){
+        return new WeaponItem(ItemType.Weapon, this.Name, this.Description, this.DropChance, this.damage);
+    }
+
+}
+
+class ArmorItem extends Item{
+    double defence;
+    public ArmorItem(ItemType type,String name, String desc,int dropchance, double def){
+        super(type, name,desc,dropchance);
+        this.defence=def;
+    }
+    @Override
+    public String getInfo(){
+        return super.getInfo()+"\nПоказатель защиты: "+defence;
+    }
+    @Override
+    public String toString(){
+        return super.toString()+"\nПоказатель защиты: "+defence;
+    }
+    ArmorItem deepClone(){
+        return new ArmorItem(ItemType.Armor, this.Name, this.Description,this.DropChance, this.defence);
+    }
+
+}
+
+
+class KeyItem extends Item{
+    int KeyLevel;
+    public KeyItem(ItemType type,String name, String desc,int dropchance, int keylevel){
+        super(type, name,desc,dropchance);
+        this.KeyLevel=keylevel;
+    }
+
+    @Override
+    public String getInfo(){
+        return super.getInfo()+"\nУровень ключа: "+KeyLevel;
+    }
+    @Override
+    public String toString(){
+        return super.toString()+"\nУровень ключа: "+KeyLevel;
+    }
+    public KeyItem deepClone(){
+        return new KeyItem(ItemType.Key, this.Name, this.Description, this.DropChance, this.KeyLevel);
+    }
+
+}
+
+class CounsumableItem extends Item{
+    double hpRestor;
+    int bonusLuck;
+    public CounsumableItem(ItemType type,String name, String desc,int dropchance, double hpbonus, int luck){
+        super(type, name,desc,dropchance);
+        this.hpRestor=hpbonus;
+        this.bonusLuck=luck;
+    }
+    @Override
+    public String getInfo(){
+        return super.getInfo()+"\nВосстановление здоровья при использовании: "+hpRestor+"\nДополнительная удача: "+bonusLuck;
+    }
+    @Override
+    public String toString(){
+        return super.toString()+"\nВосстановление здоровья при использовании: "+hpRestor+"\nДополнительная удача: "+bonusLuck;
+    }
+    public CounsumableItem deepClone(){
+        return new CounsumableItem(ItemType.Key, this.Name, this.Description, this.DropChance, this.hpRestor, this.bonusLuck);
+    }
+
+}
+
 
 //NPC
 class Entity {
@@ -578,8 +736,26 @@ public class Main {
             }
         }
 
+        WeaponItem BerserkersSword=new WeaponItem(ItemType.Weapon, "Меч берсерка","Жуткий чёрный меч, усиливающая владельца",20, 41);
+        System.out.println("Метод toString");
+        System.out.println(BerserkersSword);
+        BerserkersSword.interact();
+
+        hero.move(2,5);
+        hero.attack();
+        hero.defend();
+        hero.useItem(money);
 
 
+        WeaponItem deepClonedBerserksSword=BerserkersSword.deepClone();
+        System.out.println(deepClonedBerserksSword);
+        try {
+            Item newHexersStaff = (Item)HexersStaff.clone();
+            System.out.println(newHexersStaff);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+
+        }
     }
 
 
