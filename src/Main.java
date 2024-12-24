@@ -201,12 +201,22 @@ class PlayableCharacter implements Playable{
     }
 
     @Override
+
     public void useItem(Item item) {
-        for (int i=0;i<inventory.ActiveSlots;i++){
-            if(item.Name==inventory.items[i].Name) {
-                System.out.println("Персонаж использовал предмет: " + item.Name);
+        // Проходим по всем предметам в инвентаре
+        for (int i = 0; i < inventory.items.size(); i++) {
+            Object currentItem=inventory.items.get(i);
+            if(currentItem instanceof Item) {
+                Item currentItem2=(Item)currentItem;
+                // Сравниваем имена предметов
+                if (item.Name == currentItem2.Name) {
+                    System.out.println("Персонаж использовал предмет: " + item.Name);
+                    // Лучше экстрактировать логику удаления или уменьшения количества в инвентаре здесь
+                    return; // Завершаем метод, если предмет найден и использован
+                }
             }
         }
+        System.out.println("Предмет " + item.Name + " не найден в инвентаре.");
     }
 
 
@@ -227,12 +237,16 @@ class PlayableCharacter implements Playable{
     }
     void ShowInventory(){
         System.out.println("Содержимое инвентаря:");
-        for (int i = 0; i < inventory.ActiveSlots; i++) {
-            Item item = inventory.items[i];
-            System.out.println("Предмет: " + (i + 1));
-            System.out.println(" Тип: " + item.getItemType().getName());
-            System.out.println(" Название: " + item.getName());
-            System.out.println(" Описание: " + item.getDescription());
+
+
+
+        for (int i = 0; i < inventory.items.size(); i++) {
+            Object currentItem=inventory.items.get(i);
+            if(currentItem instanceof Item){
+               currentItem=(Item)currentItem;
+               Item currentItem2=(Item)currentItem;
+               System.out.println(currentItem2);
+            }
         }
     }
 
@@ -277,8 +291,9 @@ class PlayableCharacter implements Playable{
             Item sorcerersRobe = new Item();
             basedStuff.setItem(ItemType.Weapon, "Посох Колдуна", "Обычный посох из дерева и камня души. Позволяет воплощать мысль в магию", 33);
             sorcerersRobe.setItem(ItemType.Armor, "Роба Мага-Новичка", "Роба начинающего мага. Ходят легенты, что хранит в себе частичку магической силы", 55);
-            this.addToInventory(basedStuff);
             this.addToInventory(sorcerersRobe);
+            this.addToInventory(basedStuff);
+
         }
     }
     public int getActiveSlots() {
@@ -295,23 +310,44 @@ class InventoryFullException extends Exception {
 }
 
 class Inventory<T extends Item> {
-    Item[] items=new Item[100];//Массив предметов
+    ArrayList<T> items;//Массив предметов
     int ActiveSlots;//Свободные слоты
 
     public Inventory(){
-        this.items=new Item[100];
+       this.items=new ArrayList<T>();
         this.ActiveSlots=0;
     };
-    public void AddItem(Item item)throws InventoryFullException{
-        if (ActiveSlots >= items.length) {
+    public void AddItem(T item)throws InventoryFullException{
+        if (ActiveSlots >= 100) {
             throw new InventoryFullException("Инвентарь полон, не удается добавить элемент: " + item);
         }
-        if (ActiveSlots < 100) {
-            items[ActiveSlots] = item;
-            ActiveSlots++;
-        }
+        items.add(item);
+        ActiveSlots++;
 
     }
+
+    public void sortItems(){
+        items.sort((a,b)->{return a.getName().compareTo(b.getName());});
+    }
+
+
+    public boolean removeItem(String ItemName){
+        int position =-1;
+        for(int i=0;i<ActiveSlots;i++){
+            if(items.get(i).Name==ItemName){
+                position=i;
+                break;
+            }
+        }
+        if(position>=0){
+            items.remove(position);
+            ActiveSlots--;
+            return true;
+        }
+        return false;
+
+    }
+
 }
 
 
@@ -656,6 +692,16 @@ public class Main {
         hero.setStartItem();
         System.out.println("Просмотр инвентаря");
         hero.ShowInventory();
+
+
+        hero.inventory.sortItems();
+        hero.ShowInventory();
+
+        hero.inventory.removeItem("Башенный ключ");
+
+        hero.ShowInventory();
+
+
         // Создание врага
         Entity gobbo = new Entity();
         gobbo.setEntity("Гоблин-Воин", EntityType.Monster, false, 50, 2, 3, 5);
